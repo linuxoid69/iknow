@@ -1,89 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"time"
-
-	"github.com/gen2brain/beeep"
-	"github.com/getlantern/systray"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/driver/desktop"
+	"github.com/linuxoid69/iknow/internal/menu"
+	"github.com/linuxoid69/iknow/internal/windows"
 )
 
 func main() {
-	systray.Run(onReady, onExit)
-}
+	application := app.NewWithID("com.linuxoid69.iknow")
 
-func onReady() {
-	data, err := os.ReadFile("/tmp/test.png")
-	if err != nil {
-		fmt.Println("Ошибка при чтении файла:", err)
-		return
+	if desk, ok := application.(desktop.App); ok {
+		mainIcon, _ := menu.GetIcon("icons/main.png")
+		desk.SetSystemTrayIcon(fyne.NewStaticResource("mainIcon", mainIcon))
+		desk.SetSystemTrayMenu(menu.MenuMain(application))
 	}
-	systray.SetIcon(data)
-	systray.SetTooltip("Простое трей-приложение")
 
-	// Добавляем элементы меню
-	mStatus := systray.AddMenuItem("Статус: Работает", "Статус приложения")
-	mClick := systray.AddMenuItem("Нажми меня!", "Тестовая кнопка")
-	mNotify := systray.AddMenuItem("Notify", "Notify")
-	systray.AddSeparator()
-    mTest := systray.AddMenuItemCheckbox("test","test", false)
-    mTest.SetIcon(data)
-    mTest.AddSubMenuItem("test", "test")
-	mQuit := systray.AddMenuItem("Выход", "Закрыть приложение")
-
-	// Счетчик кликов
-	counter := 0
-
-	// Обработка событий
-	go func() {
-		for {
-			select {
-			case <-mClick.ClickedCh:
-				counter++
-				mStatus.SetTitle(fmt.Sprintf("Кликов: %d", counter))
-				systray.SetTooltip(fmt.Sprintf("Приложение (кликов: %d)", counter))
-			case <-mNotify.ClickedCh:
-				Toast(data)
-			case <-mTest.ClickedCh:
-				mTest.Check()
-			case <-mQuit.ClickedCh:
-				fmt.Println("Завершение работы...")
-				systray.Quit()
-				return
-			}
-		}
-	}()
-
-	// Обновление времени в тултипе
-	go func() {
-		ticker := time.NewTicker(30 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				systray.SetTooltip(fmt.Sprintf("Работает с: %s",
-					time.Now().Format("15:04")))
-			}
-		}
-	}()
-}
-
-func onExit() {
-	fmt.Println("Приложение закрыто")
-	os.Exit(0)
-}
-
-func Toast(icon []byte) {
-
-	// err := beeep.Notify("Заголовок", "Сообщение", "/tmp/test.png")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	beeep.Alert("Внимание!", "Что-то случилось", "assets/warning.png")
-
-	// Или просто
-	// beeep.Notify("Title", "Message body", "")
+	
+	windows.WindowMain(application).ShowAndRun()
 }
