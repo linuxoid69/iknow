@@ -12,12 +12,13 @@ const (
 )
 
 func WindowAbout(app fyne.App) (w fyne.Window) {
+
 	w = app.NewWindow(titleAbout)
 
 	githubLink := widget.NewHyperlink("", nil)
 
 	githubLink.SetText("Github")
-    githubLink.Move(fyne.NewPos(100,100))
+	githubLink.Move(fyne.NewPos(100, 100))
 
 	w.SetContent(
 		container.NewVBox(

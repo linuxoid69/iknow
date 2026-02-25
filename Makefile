@@ -1,7 +1,7 @@
-APP=iknow
+APP=iKnow
 VERSION=0.4.0
 REVISION=-0
-GO_LDFLAGS=-ldflags="-s -w"
+GO_LDFLAGS="-s -w"
 
 .PHONY: all
 all:
@@ -13,7 +13,16 @@ all:
 
 .PHONY: build
 build:
-	@go build -trimpath -ldflags=$(GO_LDFLAGS)
+	@mkdir -p bin
+	@go build -trimpath -ldflags=$(GO_LDFLAGS) -o bin/$(APP) main.go
+
+.PHONY: release
+release: build
+	@mkdir -p dist/$(APP).app/Contents/MacOS
+	@mkdir -p dist/$(APP).app/Contents/Resources
+	@cp bin/$(APP) dist/$(APP).app/Contents/MacOS
+	@envsubst < Info.plist.template > dist/$(APP).app/Contents/Info.plist
+	@hdiutil create -volname "$(APP)" -srcfolder dist -ov -format UDZO $(APP).dmg
 
 .PHONY: tools
 tools:
